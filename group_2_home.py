@@ -1,44 +1,49 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QInputDialog, QLineEdit, QWidget
+from PyQt5.QtWidgets import QApplication, QLabel, QMainWindow, QPushButton, QInputDialog, QLineEdit, QWidget, \
+    QTableWidget
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery
 from PyQt5.QtGui import QFont
 import sys
 
 
 # TODO Добавит новый класс в котором:
-    # TODO 1) Добавить заголовок
-    # TODO 2) подключится к базе данных
-    # TODO 3) созлать таблицу используя класс QTableWidget()
-    # TODO 4) создать функцию table_formation в которой будет формироватся таблица
-    # TODO 5) добавить таблицу в центре окна
-    # TODO 6) отоброзить все окна
+# TODO 1) Добавить заголовок
+# TODO 2) подключится к базе данных
+# TODO 3) созлать таблицу используя класс QTableWidget()
+# TODO 4) создать функцию table_formation в которой будет формироватся таблица
+# TODO 5) добавить таблицу в центре окна
+# TODO 6) отоброзить все окна
 
- # TODO В методе table_formation:
-    # TODO 1) добавить количество колонок в таблицу
-    # TODO 2) добавить название каждой колонки используя метод: setHorizontalHeaderLabels
-    # TODO 3) выболнить SQL запрос для получения всех данных из базы данных
-    # TODO 4) с помощью цикла ваил заполнить все ряды в таблице
-    # TODO 5) изменить размер колонки, в зависимости от контента( аналог sizeHint )
+# TODO В методе table_formation:
+# TODO 1) добавить количество колонок в таблицу
+# TODO 2) добавить название каждой колонки используя метод: setHorizontalHeaderLabels
+# TODO 3) выболнить SQL запрос для получения всех данных из базы данных
+# TODO 4) с помощью цикла ваил заполнить все ряды в таблице
+# TODO 5) изменить размер колонки, в зависимости от контента( аналог sizeHint )
 
-class Window(QMainWindow):
-    # TODO изменить наследование окна с QMainWindow на QWidgets
-    # TODO Убрать лишние строки кода, которые остались после изменения наследования
-    class Window(QMainWindow):
-        def __init__(self):
-            super().__init__()
-            self.setWindowTitle("Оценочки")
-            self.resize(400, 400)
-            self.setFont(QFont("Comic Sans MS", 10, QFont.Bold))
-            self.center_str = QLabel("#ШколаВнеПолитики")
-            self.center_str.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-            self.setCentralWidget(self.center_str)
-            self.add_buttons()
-            self.init_ui()
+
+class Table(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('Таблица')
+        self.resize(700, 800)
+        self.initUI()
+
+    def initUI(self):
+        pass
+
+
+class Window(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Оценочки")
+        self.resize(600, 700)
+        self.init_ui()
 
     def init_ui(self):
-        self.db = QSqlDatabase.addDatabase("QSQLITE")
-        self.db.setDatabaseName("students.sqlite")
         self.create_bd()
+        self.add_buttons()
         self.show()
 
     def add_buttons(self):
@@ -52,14 +57,17 @@ class Window(QMainWindow):
         student_button.move(10, 50)
         student_button.clicked.connect(self.data_button)
 
-    # TODO Добавить кнопку для вывода информации из базы данных
+        db_button = QPushButton('Вывести БД', self)
+        db_button.resize(db_button.sizeHint())
+        db_button.move(200, 10)
+        db_button.clicked.connect(self.db_view)
 
     def create_bd(self):
-        #TODO  Перенести соединение с базой данных из init_ui
+        self.db = QSqlDatabase.addDatabase("QSQLITE")
+        self.db.setDatabaseName("students.sqlite")
         if not self.db.open():
             print("Не получилось открыть базу :(")
         self.query = QSqlQuery()
-        print(2)
         self.query.exec("""CREATE TABLE IF NOT EXISTS students(
             id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
             name TEXT NOT NULL,
@@ -80,12 +88,13 @@ class Window(QMainWindow):
     def mark_button(self):
         names = self.get_name()
         name = self.get_choice(names)
-        mark = self.get_mark()
-        add_mark = self.get_grade(name, mark)
-        self.update_mark(name, add_mark)
+        if name:
+            mark = self.get_mark()
+            add_mark = self.get_grade(name, mark)
+            self.update_mark(name, add_mark)
 
     # TODO Добавить функцию db_view которая будет открывать новое окно с базой данных
-
+    def db_view(self): pass
 
     def update_mark(self, name, mark):
         self.query.prepare("UPDATE students SET mark = (?) WHERE name = (?)")
@@ -117,6 +126,8 @@ class Window(QMainWindow):
         name, ok = QInputDialog.getItem(self, "ученики", "Выберите ученика:", names, 0, False)
         if ok:
             return name
+        else:
+            return False
 
     def get_mark(self):
         mark, ok = QInputDialog.getInt(self, "добавить оценку", "Выберите оценку:", 5, 2, 5, 1)
